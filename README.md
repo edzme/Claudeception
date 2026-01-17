@@ -1,10 +1,8 @@
 # Claude Code Continuous Learning Skill
 
-A Claude Code skill that extracts learned knowledge into reusable skills. When Claude Code discovers something non-obvious—a debugging technique, a workaround, a project-specific pattern—it automatically saves that knowledge where it can be retrieved for similar future tasks.
+Every time you use an AI coding agent, it starts from zero. You spend an hour debugging some obscure error, the agent figures it out, session ends. Next time you hit the same issue? Another hour.
 
-The problem: every time you use an AI coding agent, it starts from zero. You spend an hour debugging some obscure error, the agent figures it out, and then the session ends. Next time you hit the same issue? Another hour.
-
-This skill fixes that. Knowledge compounds instead of disappearing.
+This skill fixes that. When Claude Code discovers something non-obvious (a debugging technique, a workaround, some project-specific pattern), it saves that knowledge as a new skill. Next time a similar problem comes up, the skill gets loaded automatically.
 
 ## Installation
 
@@ -45,38 +43,25 @@ Save what we just learned as a skill
 
 ### What Gets Extracted
 
-The skill is selective—not every task produces a skill. It extracts knowledge that is:
+Not every task produces a skill. It only extracts knowledge that required actual discovery (not just reading docs), will help with future tasks, has clear trigger conditions, and has been verified to work.
 
-- **Non-obvious**: Required discovery, not just documentation lookup
-- **Reusable**: Will help with future similar tasks
-- **Specific**: Has clear trigger conditions and solutions
-- **Verified**: Has actually been tested and works
+## Research
 
-## Research Foundation
+The idea comes from academic work on skill libraries for AI agents.
 
-This approach is grounded in academic research on skill libraries for AI agents.
+[Voyager](https://arxiv.org/abs/2305.16291) (Wang et al., 2023) showed that game-playing agents can build up libraries of reusable skills over time, and that this helps them avoid re-learning things they already figured out. [CASCADE](https://arxiv.org/abs/2512.23880) (2024) introduced "meta-skills" (skills for acquiring skills), which is what this is. [SEAgent](https://arxiv.org/abs/2508.04700) (2025) showed agents can learn new software environments through trial and error, which is where the `/retrospective` idea comes from. [Reflexion](https://arxiv.org/abs/2303.11366) (Shinn et al., 2023) showed that self-reflection helps.
 
-**[Voyager](https://arxiv.org/abs/2305.16291)** (Wang et al., 2023) is the foundational work. It demonstrated that game-playing agents can build "ever-growing skill libraries of executable code for storing and retrieving complex behaviors." Key insight: skills should be compositional (building on each other), interpretable (readable and understandable), and temporally extended (capturing multi-step procedures). Most importantly, skill libraries "alleviate catastrophic forgetting" by persisting knowledge across sessions.
-
-**[CASCADE](https://arxiv.org/abs/2512.23880)** (2024) introduced the concept of meta-skills—skills for acquiring skills. Agents can develop "continuous learning via web search and code extraction, and self-reflection via introspection." This skill implements that pattern: it's a meta-skill that creates other skills.
-
-**[SEAgent](https://arxiv.org/abs/2508.04700)** (2025) proved agents can "autonomously master novel software environments via experiential learning, where agents explore new software, learn through iterative trial-and-error." The `/retrospective` mode in this skill mirrors SEAgent's approach of learning from both failures and successes.
-
-**[Reflexion](https://arxiv.org/abs/2303.11366)** (Shinn et al., 2023) established that self-reflection improves agent performance. This skill uses similar prompts: "What did I just learn that wasn't obvious before starting?" and "If I faced this exact problem again, what would I wish I knew?"
-
-The pattern is consistent: agents with persistent skill libraries dramatically outperform agents that start fresh every session.
+The common finding: agents that persist what they learn do better than agents that start fresh.
 
 ## How It Works
 
-Claude Code has a native skills system that this skill exploits:
+Claude Code has a native skills system. At startup, it loads skill names and descriptions (about 100 tokens each). When you're working, it matches your current context against those descriptions and pulls in relevant skills.
 
-1. **Semantic retrieval**: Claude loads only skill names and descriptions at startup (~100 tokens each). When working on a task, it semantically matches your context against those descriptions and loads relevant skills on demand.
+The key insight: this is a retrieval system, and retrieval systems can be written to. So when this skill notices extractable knowledge, it writes a new skill with a description optimized for future retrieval.
 
-2. **Write, not just read**: The skill system is a retrieval mechanism—and retrieval mechanisms can be written to, not just read from. This skill writes new skills when it discovers extractable knowledge.
+The description matters a lot. "Helps with database problems" won't match anything useful. "Fix for PrismaClientKnownRequestError in serverless" will match when someone hits that error.
 
-3. **Description is everything**: Skills surface via semantic matching, so the description field determines discoverability. Vague descriptions like "helps with database problems" won't surface when needed. Good descriptions include exact error messages, specific frameworks, and clear trigger conditions.
-
-For more on the skills architecture, see the [Anthropic Engineering Blog](https://www.anthropic.com/engineering/equipping-agents-for-the-real-world-with-agent-skills).
+More on skills: [Anthropic Engineering Blog](https://www.anthropic.com/engineering/equipping-agents-for-the-real-world-with-agent-skills).
 
 ## Skill Format
 
@@ -112,20 +97,15 @@ See `resources/skill-template.md` for the full template.
 
 ## Quality Gates
 
-Not every task produces a skill. The system only extracts knowledge that is:
-
-- **Reusable** — will help with future tasks, not just this one instance
-- **Non-trivial** — required discovery, not just documentation lookup
-- **Specific** — has clear trigger conditions (exact error messages, symptoms)
-- **Verified** — the solution actually worked, not just theoretically
+The skill is picky about what it extracts. If something is just a documentation lookup, or only useful for this one case, or hasn't actually been tested, it won't create a skill. The bar is: would this actually help someone who hits this problem in six months?
 
 ## Examples
 
-See `examples/` for sample extracted skills:
+See `examples/` for sample skills:
 
-- `nextjs-server-side-error-debugging/` — finding errors that don't show in browser console
-- `prisma-connection-pool-exhaustion/` — solving "too many connections" in serverless
-- `typescript-circular-dependency/` — detecting and resolving import cycles
+- `nextjs-server-side-error-debugging/`: errors that don't show in browser console
+- `prisma-connection-pool-exhaustion/`: the "too many connections" serverless problem
+- `typescript-circular-dependency/`: detecting and fixing import cycles
 
 ## Contributing
 
