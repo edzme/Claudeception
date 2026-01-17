@@ -51,17 +51,17 @@ The idea comes from academic work on skill libraries for AI agents.
 
 [Voyager](https://arxiv.org/abs/2305.16291) (Wang et al., 2023) showed that game-playing agents can build up libraries of reusable skills over time, and that this helps them avoid re-learning things they already figured out. [CASCADE](https://arxiv.org/abs/2512.23880) (2024) introduced "meta-skills" (skills for acquiring skills), which is what this is. [SEAgent](https://arxiv.org/abs/2508.04700) (2025) showed agents can learn new software environments through trial and error, which is where the `/retrospective` idea comes from. [Reflexion](https://arxiv.org/abs/2303.11366) (Shinn et al., 2023) showed that self-reflection helps.
 
-The common finding: agents that persist what they learn do better than agents that start fresh.
+Agents that persist what they learn do better than agents that start fresh.
 
 ## How It Works
 
 Claude Code has a native skills system. At startup, it loads skill names and descriptions (about 100 tokens each). When you're working, it matches your current context against those descriptions and pulls in relevant skills.
 
-The key insight: this is a retrieval system, and retrieval systems can be written to. So when this skill notices extractable knowledge, it writes a new skill with a description optimized for future retrieval.
+But this retrieval system can be written to, not just read from. So when this skill notices extractable knowledge, it writes a new skill with a description optimized for future retrieval.
 
 The description matters a lot. "Helps with database problems" won't match anything useful. "Fix for PrismaClientKnownRequestError in serverless" will match when someone hits that error.
 
-More on skills: [Anthropic Engineering Blog](https://www.anthropic.com/engineering/equipping-agents-for-the-real-world-with-agent-skills).
+More on the skills architecture [here](https://www.anthropic.com/engineering/equipping-agents-for-the-real-world-with-agent-skills).
 
 ## Skill Format
 
@@ -97,7 +97,7 @@ See `resources/skill-template.md` for the full template.
 
 ## Quality Gates
 
-The skill is picky about what it extracts. If something is just a documentation lookup, or only useful for this one case, or hasn't actually been tested, it won't create a skill. The bar is: would this actually help someone who hits this problem in six months?
+The skill is picky about what it extracts. If something is just a documentation lookup, or only useful for this one case, or hasn't actually been tested, it won't create a skill. Would this actually help someone who hits this problem in six months? If not, no skill.
 
 ## Examples
 
